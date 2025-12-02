@@ -39,10 +39,30 @@ A unified Android encyclopedia application for exploring Pokémon and Digimon, b
 
 Two app variants from a single codebase:
 
-| Flavor | API | Theme Color |
-|--------|-----|-------------|
-| **Pokemon** | [PokéAPI](https://pokeapi.co/) | Red (#91E8F3) |
-| **Digimon** | [Digi-API](https://digi-api.com/) | Blue (#F5C3B8) |
+<table style="width: 100%;">
+  <tr>
+    <th>Flavor</th>
+    <th>API</th>
+    <th>Theme Color</th>
+    <th>Demo</th>
+  </tr>
+  <tr>
+    <td><strong>Pokemon</strong></td>
+    <td><a href="https://pokeapi.co/">PokéAPI</a></td>
+    <td>
+      <img src="https://placehold.co/15x15/91E8F3/91E8F3.png" alt="color"> Aqua Blue <code>#91E8F3</code>
+    </td>
+    <td><img src="https://github.com/user-attachments/assets/f0ff954c-9245-4a67-852e-153f800fd191" alt="Pokemon App Demo" width="200"></td>
+  </tr>
+  <tr>
+    <td><strong>Digimon</strong></td>
+    <td><a href="https://digi-api.com/">Digi-API</a></td>
+    <td>
+      <img src="https://placehold.co/15x15/F5C3B8/F5C3B8.png" alt="color"> Peach Pink <code>#F5C3B8</code>
+    </td>
+    <td><img src="https://github.com/user-attachments/assets/acfbe93f-baad-40eb-9814-b6d6fc897872" alt="Digimon App Demo" width="200"></td>
+  </tr>
+</table>
 
 ## Tech Stack
 
