@@ -71,16 +71,18 @@ Two app variants from a single codebase:
 - **DI**: Koin
 - **Networking**: Retrofit, Moshi
 - **Async**: Kotlin Coroutines, Flow
+- **Pagination**: Paging 3
 - **Image Loading**: Coil
 - **Navigation**: Compose Navigation with Type Safety
 
 ## Features
 
 ### List Screen
-- Grid layout with pagination
-- Infinite scroll with load more
+- Grid layout with Paging 3 integration
+- Infinite scroll with automatic page loading
+- Pull-to-refresh support
 - Creature cards with images and types
-- Loading states and error handling
+- Loading states and error handling with retry
 
 ### Detail Screen
 - Creature image and basic info
