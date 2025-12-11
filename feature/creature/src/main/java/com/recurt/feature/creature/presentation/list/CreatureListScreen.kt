@@ -4,15 +4,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.recurt.core.common.theme.LocalAppThemeConfig
 import com.recurt.feature.creature.presentation.list.components.CreatureGridItem
 import org.koin.androidx.compose.koinViewModel
@@ -23,19 +26,12 @@ fun CreatureListScreen(
     onCreatureClick: (String) -> Unit,
     viewModel: CreatureListViewModel = koinViewModel()
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val gridState = rememberLazyGridState()
+    val pagingItems = viewModel.creaturePagingFlow.collectAsLazyPagingItems()
     val themeConfig = LocalAppThemeConfig.current
 
-    LaunchedEffect(gridState) {
-        snapshotFlow {
-            gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-        }.collect { lastIndex ->
-            if (lastIndex != null && lastIndex >= state.creatureListItem.size - 5) {
-                viewModel.handleIntent(CreatureListIntent.LoadMore)
-            }
-        }
-    }
+    val isRefreshingForIndicator =
+        pagingItems.loadState.refresh is LoadState.Loading && pagingItems.itemCount > 0
+    val pullToRefreshState = rememberPullToRefreshState()
 
     Scaffold(
         topBar = {
@@ -57,9 +53,14 @@ fun CreatureListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .pullToRefresh(
+                    isRefreshing = isRefreshingForIndicator,
+                    state = pullToRefreshState,
+                    onRefresh = { pagingItems.refresh() }
+                )
         ) {
-            when {
-                state.isLoading && state.creatureListItem.isEmpty() -> {
+            when (pagingItems.loadState.refresh) {
+                is LoadState.Loading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -68,14 +69,15 @@ fun CreatureListScreen(
                     }
                 }
 
-                state.error != null && state.creatureListItem.isEmpty() -> {
+                is LoadState.Error -> {
+                    val error = pagingItems.loadState.refresh as LoadState.Error
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = state.error!!,
+                            text = error.error.localizedMessage ?: "Unknown error",
                             style = MaterialTheme.typography.bodyLarge,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.error,
@@ -83,7 +85,7 @@ fun CreatureListScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
-                            onClick = { viewModel.handleIntent(CreatureListIntent.Refresh) }
+                            onClick = { pagingItems.retry() }
                         ) {
                             Text("Retry")
                         }
@@ -93,22 +95,29 @@ fun CreatureListScreen(
                 else -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
-                        state = gridState,
                         contentPadding = PaddingValues(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(state.creatureListItem) { item ->
-                            CreatureGridItem(
-                                creatureListItem = item,
-                                onClick = {
-                                    viewModel.handleIntent(CreatureListIntent.SelectCreature(item.id))
-                                    onCreatureClick(item.id)
-                                }
-                            )
+                        items(
+                            count = pagingItems.itemCount,
+                            key = pagingItems.itemKey { it.id }
+                        ) { index ->
+                            val item = pagingItems[index]
+                            if (item != null) {
+                                CreatureGridItem(
+                                    creatureListItem = item,
+                                    onClick = {
+                                        viewModel.handleIntent(
+                                            CreatureListIntent.SelectCreature(item.id)
+                                        )
+                                        onCreatureClick(item.id)
+                                    }
+                                )
+                            }
                         }
 
-                        if (state.isLoadingMore) {
+                        if (pagingItems.loadState.append is LoadState.Loading) {
                             item(span = { GridItemSpan(2) }) {
                                 Box(
                                     modifier = Modifier
@@ -122,9 +131,37 @@ fun CreatureListScreen(
                                 }
                             }
                         }
+
+                        if (pagingItems.loadState.append is LoadState.Error) {
+                            val error = pagingItems.loadState.append as LoadState.Error
+                            item(span = { GridItemSpan(2) }) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = error.error.localizedMessage ?: "Load more failed",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    TextButton(onClick = { pagingItems.retry() }) {
+                                        Text("Retry")
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
+
+            PullToRefreshDefaults.Indicator(
+                state = pullToRefreshState,
+                isRefreshing = isRefreshingForIndicator,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
     }
 }

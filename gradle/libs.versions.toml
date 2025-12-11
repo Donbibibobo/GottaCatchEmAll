@@ -33,6 +33,9 @@ moshi = "1.15.0"
 coroutines = "1.7.3"
 serialization = "1.7.3"
 
+# Paging
+paging = "3.3.0"
+
 # Testing
 junit = "4.13.2"
 androidxTestExt = "1.1.5"
@@ -59,6 +62,10 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-material-icons = { group = "androidx.compose.material", name = "material-icons-core" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation" }
+
+# Paging3
+androidx-paging = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
+androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 
 # Others
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }

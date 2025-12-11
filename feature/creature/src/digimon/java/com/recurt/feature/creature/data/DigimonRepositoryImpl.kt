@@ -1,9 +1,12 @@
 package com.recurt.feature.creature.data
 
-import android.util.Log
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import com.recurt.core.common.util.Constants
 import com.recurt.core.common.util.Resource
 import com.recurt.feature.creature.data.mapper.toCreature
-import com.recurt.feature.creature.data.mapper.toCreatureListItem
+import com.recurt.feature.creature.data.paging.CreaturePagingSource
 import com.recurt.feature.creature.data.remote.api.DigimonApi
 import com.recurt.feature.creature.domain.model.Creature
 import com.recurt.feature.creature.domain.model.CreatureListItem
@@ -17,27 +20,17 @@ class DigimonRepositoryImpl(
     private val digimonApi: DigimonApi
 ) : CreatureRepository {
 
-    override fun getCreatureList(page: Int, pageSize: Int): Flow<Resource<List<CreatureListItem>>> = flow {
-        emit(Resource.Loading())
-
-        try {
-            val response = digimonApi.getDigimonList(
-                page = page,
-                pageSize = pageSize
-            )
-            val creatures = response.content.map { it.toCreatureListItem() }
-            emit(Resource.Success(creatures))
-        } catch (e: Exception) {
-            emit(Resource.Error(
-                message = when (e) {
-                    is java.net.UnknownHostException -> "No internet connection"
-                    is java.net.SocketTimeoutException -> "Connection timeout"
-                    is retrofit2.HttpException -> "Server error (${e.code()})"
-                    else -> e.localizedMessage ?: "Unknown error"
-                }
-            ))
-        }
-    }.flowOn(Dispatchers.IO)
+    override fun getCreatureListPaging(): Flow<PagingData<CreatureListItem>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = Constants.PAGE_SIZE,
+                initialLoadSize = Constants.PAGE_SIZE,
+                enablePlaceholders = false,
+                prefetchDistance = 5
+            ),
+            pagingSourceFactory = { CreaturePagingSource(digimonApi) }
+        ).flow
+    }
 
     override fun getCreatureDetail(id: String): Flow<Resource<Creature>> = flow {
         emit(Resource.Loading())
@@ -45,8 +38,6 @@ class DigimonRepositoryImpl(
         try {
             val response = digimonApi.getDigimonDetail(id)
             val creature = response.toCreature()
-            Log.i("shi@", "response: $response")
-            Log.i("shi@", "creature: $creature")
             emit(Resource.Success(creature))
         } catch (e: Exception) {
             emit(Resource.Error(

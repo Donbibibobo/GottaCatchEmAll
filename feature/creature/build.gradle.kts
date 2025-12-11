@@ -103,6 +103,10 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.moshi.kotlin)
 
+    // Paging
+    implementation(libs.androidx.paging)
+    implementation(libs.androidx.paging.compose)
+
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

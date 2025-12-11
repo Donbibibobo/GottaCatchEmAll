@@ -1,7 +1,6 @@
 package com.recurt.core.common.theme
 
 import android.app.Activity
-import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -41,14 +40,12 @@ fun EncyclopediaTheme(
     )
 
     val colorScheme = if (darkTheme) darkColorScheme else lightColorScheme
-    Log.i("shi@","colorScheme: $colorScheme")
 
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.primary.toArgb()
-            Log.i("shi@","statusBarColor: ${colorScheme.primary.toArgb()}")
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
